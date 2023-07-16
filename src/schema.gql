@@ -1,0 +1,40 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type ProductEntity {
+  id: String!
+  price: Float!
+  user_id: String!
+  quantity: Int!
+  title: String
+  description: String!
+  image: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Query {
+  """get all products"""
+  products: [ProductEntity!]!
+
+  """show product"""
+  product(id: String!): ProductEntity!
+}
+
+type Mutation {
+  createProduct(createProductInput: createProductInput!): ProductEntity!
+}
+
+input createProductInput {
+  price: Float!
+  quantity: Int!
+  title: String
+  description: String!
+  image: String!
+}
