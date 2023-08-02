@@ -1,33 +1,18 @@
-/*import { Client, ClientProxy, Transport } from '@nestjs/microservices';
-import { ProductDTO, UserDTO, config } from '@commerce/shared';
-
-import { UseGuards } from '@nestjs/common';
-
-import { AuthGuard } from '../middlewares/auth.guard';
-import { CreateProduct } from './create-product.validation';
-import { ProductService } from './product.service';
-import { SellerGuard } from '../middlewares/seller.guard';
-import { UserDataLoader } from '../loaders/user.loader';
-*/
-import {
-  Query,
-  Resolver,
-  Context,
-  Mutation,
-  Args,
-  ResolveProperty,
-  Parent,
-} from '@nestjs/graphql';
+import { Query, Resolver, Mutation, Args } from '@nestjs/graphql';
 import { ProductsService } from './products.service';
 import {
   ProductEntity,
   createProductInput,
 } from 'src/shared/types/products.types';
+import { Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/shared/decorator';
+//import { UserDataLoader } from 'src/loaders/user.loader';
 @Resolver((of) => ProductEntity)
 export class ProductResolver {
   constructor(
-    private readonly productsService: ProductsService, // private readonly usersDataLoader: UserDataLoader,
-  ) {}
+    private readonly productsService: ProductsService,
+  ) /* private readonly usersDataLoader: UserDataLoader*/ {}
   /* @ResolveProperty('user', () => UserDTO)
   async user(@Parent() product: ProductDTO): Promise<UserDTO> {
     return this.usersDataLoader.load(product.user_id);
@@ -47,28 +32,35 @@ export class ProductResolver {
   async getProduct(@Args('id') id: string) {
     return this.productsService.getProduct(id);
   }
-
   @Mutation((returns) => ProductEntity, { name: 'createProduct' })
-  // @UseGuards(new AuthGuard(), new SellerGuard())
+  @UseGuards(JwtAuthGuard)
   async addProduct(
     @Args('createProductInput') createProductInput: createProductInput,
+    @CurrentUser() user: any,
     // @Context('user') user: any,
   ) {
     return this.productsService.addProduct(createProductInput /*user.id*/);
   }
-  /*
-  @Mutation()
-  @UseGuards(new AuthGuard(), new SellerGuard())
+
+  @Mutation((returns) => ProductEntity, { name: 'updateProduct' })
+  // @UseGuards(JwtAuthGuard, new SellerGuard())
   async updateProduct(
-    @Args('data') data: CreateProduct,
-    @Context('user') user: any,
+    @Args('updateProductInput') UpdateProductInput: createProductInput,
+    //@Context('user') user: any,
     @Args('id') id: string,
-  ) {
-    return this.productService.update(data, id, user.id);
+  ): Promise<ProductEntity> {
+    return this.productsService.updateProduct(
+      UpdateProductInput,
+      id /* user.id*/,
+    );
   }
-  @Mutation()
-  @UseGuards(new AuthGuard(), new SellerGuard())
-  async deleteProduct(@Context('user') user: any, @Args('id') id: string) {
-    return this.productService.destroy(id, user.id);
-  }*/
+
+  @Mutation((returns) => ProductEntity, {
+    name: 'deleteProduct',
+    description: 'delete product',
+  })
+  // @UseGuards(new AuthGuard(), new SellerGuard())
+  async deleteProduct(/*@Context('user') user: any,*/ @Args('id') id: string) {
+    return this.productsService.deleteProduct(id /*, user.id*/);
+  }
 }

@@ -28,7 +28,7 @@ export class createProductInput {
   price: number;
   @Field((type) => Int)
   quantity: number;
-  @Field((type) => String, { nullable: true })
+  @Field((type) => String)
   title: string;
   @Field()
   description: string;

@@ -2,9 +2,12 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import {
   create_product,
+  delete_product,
   fetch_products_by_ids,
   get_products,
+  order_deleted,
   show_product,
+  update_product,
 } from 'src/shared/config/cmd-patterns/products.patterns';
 import {
   ProductEntity,
@@ -22,7 +25,6 @@ export class ProductsService {
       redis.get(redisProductsKey, (err, products) => {
         // if products don't persist, retrieve them, and store in redis.
         if (!products) {
-          console.log('noproducts');
           this.redis.send<ProductEntity[]>({ cmd: get_products }, []).subscribe(
             (products) => {
               redis.set(
@@ -52,13 +54,59 @@ export class ProductsService {
   async addProduct(createProductInput: createProductInput) {
     return new Promise((resolve, reject) => {
       this.redis
-        .send<createProductInput>(
+        .send<ProductEntity>(
           { cmd: create_product },
           /* {
             ...data,
             user_id: id,
           },*/
           createProductInput,
+        )
+        .subscribe(
+          (product) => {
+            redis.del(redisProductsKey);
+            return resolve(product);
+          },
+          (error) => reject(error),
+        );
+    });
+  }
+  async updateProduct(
+    updateProductInput: createProductInput,
+    productId: string,
+  ): Promise<ProductEntity> {
+    console.log(updateProductInput);
+
+    return new Promise((resolve, reject) => {
+      console.log(updateProductInput);
+      this.redis
+        .send<ProductEntity>(
+          { cmd: update_product },
+          {
+            ...updateProductInput,
+            id: productId,
+            // user_id: id,
+          },
+        )
+        .subscribe(
+          (product) => {
+            redis.del(redisProductsKey);
+            return resolve(product);
+          },
+          (error) => reject(error),
+        );
+    });
+  }
+
+  async deleteProduct(productId: string /*, id: string*/) {
+    return new Promise((resolve, reject) => {
+      this.redis
+        .send(
+          { cmd: delete_product },
+          {
+            id: productId,
+            //  user_id: id,
+          },
         )
         .subscribe(
           (product) => {
