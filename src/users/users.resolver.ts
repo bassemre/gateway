@@ -4,21 +4,21 @@ import { UseGuards } from '@nestjs/common';
 import { UserService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UserDTO } from './dtos/user.dto';
-
-//import { SellerGuard } from '../middlewares/seller.guard';
+import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
+import { CurrentUser } from 'src/shared/decorator';
 
 @Resolver('User')
 export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
-  @Query((returns) => UserDTO, { name: 'Users' })
+  @Query((returns) => [UserDTO], { name: 'Users' })
   getUsers(): Promise<UserDTO[]> {
     return this.userService.getUsers();
   }
 
   @Query((returns) => UserDTO)
-  @UseGuards(AuthGuard('jwt'))
-  me(@Context('user') user: any) {
+  @UseGuards(JwtAuthGuard)
+  me(@CurrentUser() user: UserDTO) {
     return this.userService.me(user.id);
   }
 }

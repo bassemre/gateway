@@ -14,6 +14,7 @@ import {
   createProductInput,
 } from 'src/shared/types/products.types';
 import { redis, redisProductsKey } from '../utils/redis';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class ProductsService {
@@ -51,16 +52,15 @@ export class ProductsService {
   async fetchProductsByIds(ids: Array<string>) {
     return await this.redis.send({ cmd: fetch_products_by_ids }, ids);
   }
-  async addProduct(createProductInput: createProductInput) {
+  async addProduct(createProductInput: createProductInput, id: string) {
     return new Promise((resolve, reject) => {
       this.redis
         .send<ProductEntity>(
           { cmd: create_product },
-          /* {
-            ...data,
+          {
+            ...createProductInput,
             user_id: id,
-          },*/
-          createProductInput,
+          },
         )
         .subscribe(
           (product) => {
@@ -74,47 +74,31 @@ export class ProductsService {
   async updateProduct(
     updateProductInput: createProductInput,
     productId: string,
+    userId: string,
   ): Promise<ProductEntity> {
-    console.log(updateProductInput);
-
-    return new Promise((resolve, reject) => {
-      console.log(updateProductInput);
-      this.redis
-        .send<ProductEntity>(
-          { cmd: update_product },
-          {
-            ...updateProductInput,
-            id: productId,
-            // user_id: id,
-          },
-        )
-        .subscribe(
-          (product) => {
-            redis.del(redisProductsKey);
-            return resolve(product);
-          },
-          (error) => reject(error),
-        );
-    });
+    const updateProduct = this.redis.send<ProductEntity>(
+      { cmd: update_product },
+      {
+        ...updateProductInput,
+        productId,
+        userId,
+      },
+    );
+    const response = await lastValueFrom(updateProduct);
+    redis.del(redisProductsKey);
+    return response;
   }
 
-  async deleteProduct(productId: string /*, id: string*/) {
-    return new Promise((resolve, reject) => {
-      this.redis
-        .send(
-          { cmd: delete_product },
-          {
-            id: productId,
-            //  user_id: id,
-          },
-        )
-        .subscribe(
-          (product) => {
-            redis.del(redisProductsKey);
-            return resolve(product);
-          },
-          (error) => reject(error),
-        );
-    });
+  async deleteProduct(productId: string, userId: string) {
+    const observable = this.redis.send(
+      { cmd: delete_product },
+      {
+        productId,
+        userId,
+      },
+    );
+    const response = await lastValueFrom(observable);
+    await redis.del(redisProductsKey);
+    return response;
   }
 }

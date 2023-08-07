@@ -7,6 +7,8 @@ import {
 import { Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { CurrentUser } from 'src/shared/decorator';
+import { UserDTO } from 'src/users/dtos/user.dto';
+import { SellerGuard } from 'src/shared/guards/seller.guard';
 //import { UserDataLoader } from 'src/loaders/user.loader';
 @Resolver((of) => ProductEntity)
 export class ProductResolver {
@@ -33,34 +35,31 @@ export class ProductResolver {
     return this.productsService.getProduct(id);
   }
   @Mutation((returns) => ProductEntity, { name: 'createProduct' })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, new SellerGuard())
   async addProduct(
     @Args('createProductInput') createProductInput: createProductInput,
-    @CurrentUser() user: any,
-    // @Context('user') user: any,
+    @CurrentUser() user: UserDTO,
   ) {
-    return this.productsService.addProduct(createProductInput /*user.id*/);
+    return this.productsService.addProduct(createProductInput, user.id);
   }
 
   @Mutation((returns) => ProductEntity, { name: 'updateProduct' })
-  // @UseGuards(JwtAuthGuard, new SellerGuard())
+  @UseGuards(JwtAuthGuard, new SellerGuard())
   async updateProduct(
     @Args('updateProductInput') UpdateProductInput: createProductInput,
-    //@Context('user') user: any,
+    @CurrentUser() user: UserDTO,
     @Args('id') id: string,
   ): Promise<ProductEntity> {
-    return this.productsService.updateProduct(
-      UpdateProductInput,
-      id /* user.id*/,
-    );
+    return this.productsService.updateProduct(UpdateProductInput, id, user.id);
   }
 
   @Mutation((returns) => ProductEntity, {
     name: 'deleteProduct',
     description: 'delete product',
+    nullable: true,
   })
-  // @UseGuards(new AuthGuard(), new SellerGuard())
-  async deleteProduct(/*@Context('user') user: any,*/ @Args('id') id: string) {
-    return this.productsService.deleteProduct(id /*, user.id*/);
+  @UseGuards(JwtAuthGuard, new SellerGuard())
+  async deleteProduct(@CurrentUser() user: UserDTO, @Args('id') id: string) {
+    return this.productsService.deleteProduct(id, user.id);
   }
 }

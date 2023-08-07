@@ -36,7 +36,7 @@ type Query {
 
   """show product"""
   product(id: String!): ProductEntity!
-  Users: UserDTO!
+  Users: [UserDTO!]!
   me: UserDTO!
 }
 
@@ -45,7 +45,7 @@ type Mutation {
   updateProduct(updateProductInput: createProductInput!, id: String!): ProductEntity!
 
   """delete product"""
-  deleteProduct(id: String!): ProductEntity!
+  deleteProduct(id: String!): ProductEntity
   login(LoginUser: LoginUser!): TokenDTO!
   register(RegisterUser: RegisterUser!): UserDTO!
 }

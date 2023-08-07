@@ -13,6 +13,7 @@ export class UserDTO {
   seller: boolean;
   // @Field()
   // address: AddressDTO;
+
   @Field()
   created_at: Date;
 }
