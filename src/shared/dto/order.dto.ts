@@ -1,5 +1,6 @@
-/*import { ProductDTO } from './product.dto';
+import { ProductDTO } from './product.dto';
 import { UserDTO } from './user.dto';
+
 interface ProductOrder {
   product: ProductDTO;
   quantity: number;
@@ -10,4 +11,3 @@ export interface OrderDTO {
   products: ProductOrder[];
   created_at: Date;
 }
-*/

@@ -30,6 +30,18 @@ type TokenDTO {
   token: String!
 }
 
+type ProductOrder {
+  id: String!
+  quantity: Int!
+}
+
+type OrderDTO {
+  user_id: String!
+  total_price: Float!
+  products: [ProductOrder!]!
+  created_at: DateTime
+}
+
 type Query {
   """get all products"""
   products: [ProductEntity!]!
@@ -38,6 +50,7 @@ type Query {
   product(id: String!): ProductEntity!
   Users: [UserDTO!]!
   me: UserDTO!
+  ordersByUser: [OrderDTO!]!
 }
 
 type Mutation {
@@ -48,6 +61,8 @@ type Mutation {
   deleteProduct(id: String!): ProductEntity
   login(LoginUser: LoginUser!): TokenDTO!
   register(RegisterUser: RegisterUser!): UserDTO!
+  createOrders(createOrders: [CreateOrder!]!): OrderDTO!
+  deleteOrder(order: String!): OrderDTO!
 }
 
 input createProductInput {
@@ -69,4 +84,9 @@ input RegisterUser {
   name: String!
   password_confirmation: String!
   seller: Boolean!
+}
+
+input CreateOrder {
+  quantity: Int!
+  id: String!
 }
