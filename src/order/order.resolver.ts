@@ -1,5 +1,12 @@
 import { HttpException, HttpStatus, Inject, UseGuards } from '@nestjs/common';
-import { Query, Resolver, Mutation, Args } from '@nestjs/graphql';
+import {
+  Query,
+  Resolver,
+  Mutation,
+  Args,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
 import { CurrentUser } from 'src/shared/decorator';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { OrderService } from './order.service';
@@ -9,6 +16,7 @@ import { ClientProxy } from '@nestjs/microservices';
 import { ProductEntity } from 'src/shared/types/products.types';
 import { CreateOrder } from './dto/create.order.dto';
 import { lastValueFrom } from 'rxjs';
+import { UserDTO } from 'src/users/dtos/user.dto';
 
 @Resolver((of) => OrderDTO)
 export class OrderResolver {
@@ -27,8 +35,8 @@ export class OrderResolver {
   }*/
   @Query((returns) => [OrderDTO], { name: 'ordersByUser' })
   @UseGuards(JwtAuthGuard)
-  async getOrders(@CurrentUser() user: any): Promise<any> {
-    return this.orderService.findOrdersByUser(user.id);
+  async getOrders(@CurrentUser() user: any): Promise<[OrderDTO]> {
+    return await this.orderService.findOrdersByUser(user.id);
   }
 
   @Mutation((returns) => OrderDTO)
@@ -63,5 +71,13 @@ export class OrderResolver {
   @UseGuards(JwtAuthGuard)
   async deleteOrder(@Args('order') id: string, @CurrentUser() user: any) {
     return this.orderService.destroyUserOrder(id, user.id);
+  }
+  //like nested query to populate user property in parent class(orderDto) by another property in parent class
+  //so user and user_id must be defined in orderDto object type(parent class)
+  //so there we make two query to database first one getOrders or create orders (any resolver return orderDto and by fetched user_id we make the second query to populate user
+  //so the importance of dataloader here because for each user_id we make anew request to query the DB (so this is inefficient)
+  @ResolveField('user', () => UserDTO)
+  async user(@Parent() order: OrderDTO): Promise<any> {
+    return this.orderService.getUser(order.user_id);
   }
 }

@@ -15,9 +15,9 @@ export class UserService {
   me(id: any) {
     return this.redis.send<UserDTO>('current-loggedin-user', id);
   }
-  async fetchUsersByIds(ids: string[]): Promise<UserDTO> {
+  async fetchUsersByIds(ids: /*[string]*/ any): Promise<[UserDTO]> {
     const user = await this.redis
-      .send<UserDTO, string[]>('fetch-users-by-ids', ids)
+      .send</*UserDTO, string[]*/ any>('fetch-users-by-ids', ids)
       .toPromise();
     return user;
   }

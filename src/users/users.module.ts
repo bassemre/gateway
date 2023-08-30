@@ -7,5 +7,6 @@ import { UserService } from './users.service';
 @Module({
   imports: [ClientsModule.register(microservicesConfig())],
   providers: [UserService, UserResolver],
+  exports: [UserService],
 })
 export class UsersModule {}

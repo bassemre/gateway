@@ -2,12 +2,16 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { OrderDTO } from './dto/order.dto';
 import { lastValueFrom } from 'rxjs';
+import { UserService } from 'src/users/users.service';
 
 @Injectable()
 export class OrderService {
-  constructor(@Inject('REDIS') private redis: ClientProxy) {}
+  constructor(
+    @Inject('REDIS') private redis: ClientProxy,
+    private readonly userSevice: UserService,
+  ) {}
 
-  async findOrdersByUser(user_id: string): Promise<any> {
+  async findOrdersByUser(user_id: string): Promise<[OrderDTO]> {
     const observ = this.redis.send('get-orders-by-user', user_id);
     return await lastValueFrom(observ);
   }
@@ -46,5 +50,9 @@ export class OrderService {
     // fire an event that order is deleted to increase the product's quantity.
     this.redis.emit('order_deleted', order.products);
     return order;
+  }
+
+  async getUser(user_id) {
+    return await this.userSevice.me(user_id);
   }
 }
