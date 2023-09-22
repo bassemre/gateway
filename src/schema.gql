@@ -36,10 +36,22 @@ type ProductOrder {
 }
 
 type OrderDTO {
+  user: UserDTO!
   user_id: String!
   total_price: Float!
   products: [ProductOrder!]!
+  status: String!
   created_at: DateTime
+}
+
+type PaymentCardDTO {
+  id: String!
+  user: UserDTO!
+  last_four: String!
+  brand: String!
+  default: Boolean!
+  provider_id: String!
+  created_at: DateTime!
 }
 
 type Query {
@@ -51,6 +63,8 @@ type Query {
   Users: [UserDTO!]!
   me: UserDTO!
   ordersByUser: [OrderDTO!]!
+  getUserPaymentCards: [PaymentCardDTO!]!
+  showPaymentCard(id: String!): PaymentCardDTO!
 }
 
 type Mutation {
@@ -63,6 +77,8 @@ type Mutation {
   register(RegisterUser: RegisterUser!): UserDTO!
   createOrders(createOrders: [CreateOrder!]!): OrderDTO!
   deleteOrder(order: String!): OrderDTO!
+  createPaymentCard(data: CreatePaymentCard!): PaymentCardDTO!
+  createChargeForUser(orderId: String!): OrderDTO!
 }
 
 input createProductInput {
@@ -89,4 +105,11 @@ input RegisterUser {
 input CreateOrder {
   quantity: Int!
   id: String!
+}
+
+input CreatePaymentCard {
+  provider_id: String!
+  token_id: String!
+  brand: String!
+  last_four: String!
 }
